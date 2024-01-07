@@ -1,0 +1,43 @@
+﻿Jason Tran
+605975912
+CS35L Assignment 2
+
+
+
+
+2.1)
+1. (*  (expt 2 606) (- (expt 2 607) 1)) 
+2. (+ (log (/ (* (expt 2 606) (- (expt 2 607) 1)) (expt 2 1000)) 2) 100)
+3. When typing C-h k C-h k it runs the describe-key command on whatever is after the first C-h k. The command basically shows documentations and rules to the second command you inputted similar to what man does in linux. So it shows documentation to C-h k itself because you are using the C-h k on a command (C-h k in this case). This relates to C-h b because it lists command bindings and names so you can use C-h k on one to know what it does in detail.
+4. When typing C-h k M-SPC it runs the describe-key command on meta space. So it shows the command documentation for the keybind M-SPC.M-SPC is the command for cycle spacing which is good for if you have a lot of whitespace and want to clean it up or delete it. It works by running the simpler cycle-spacing-actions many times.
+5. cycle-spacing
+
+
+Homework)
+What happens when this script is invoked on an empty file like /dev/null, and why?
+There is an error because the script uses sequences and indexing so it is accessing an index out of range since the file in empty.
+What happens when this script is invoked with Python 3 rather than Python 2, and why? 
+The script doesn’t work/compile since there is a syntax error. Python 3 is newer so it probably has new rules about syntax that do not apply to Python 2 which is the rules the script is currently following.
+Performance Benchmark:
+* CPU from lscpu: Intel(R) Xeon(R) Silver 4116 CPU @ 2.10GHz
+* Operating System Version: 
+NAME="Red Hat Enterprise Linux"
+VERSION="8.5 (Ootpa)"
+ID="rhel"
+ID_LIKE="fedora"
+VERSION_ID="8.5"
+PLATFORM_ID="platform:el8"
+Coreutils Shuf Command:
+Median of user time (3): .072s
+Median of sys time (3): .1233s
+/usr/local/cs/bin/python3 shuf.py:
+Median of user time (3): .687s
+Median of sys time (3): .039s
+/usr/bin/python3 shuf.py:
+I get an error, more specifically ascii can’t decode a byte error when I use file.readlines(). The command is probably reading in lines that include characters that are not recognized on this version of python.
+
+
+What happens when your shuf.py script is invoked with Python 2 rather than Python 3, and why? 
+It doesn’t even run.
+There is a syntax error concerning this line: print(f"shuf: invalid input range: '{lo}-{hi}'")
+This is probably because python 3 is more lenient on single-quote and double-quote consecutively and python 2 doesn’t know how to deal with it yet, especially the format string also.

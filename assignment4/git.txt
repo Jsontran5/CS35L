@@ -1,0 +1,33 @@
+git branch -a from GitHub's own git repo from Github.
+
+* master
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/jch
+  remotes/origin/maint
+  remotes/origin/master
+  remotes/origin/next
+  remotes/origin/seen
+  remotes/origin/todo
+
+git branch -a from ~eggert/src/github/git
+
+  maint
+* master
+  next
+  seen
+  todo
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/jch
+  remotes/origin/main
+  remotes/origin/maint
+  remotes/origin/master
+  remotes/origin/next
+  remotes/origin/seen
+  remotes/origin/todo
+
+The one from eggert's seem's to have an extra branch "remotes/origin/main".
+Eggert's maint, next, seen, todo branch are not only listed as remote-tracking branches and are avaible as local branches since they dont have prefixes in them in the beginning of the name.
+There is an extra "remotes/origin/main" branch is Eggert's repo.
+All branches except master from Github are remote branches indicated with "remotes/origin/"
+
+

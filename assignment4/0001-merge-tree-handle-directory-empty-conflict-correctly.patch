@@ -1,0 +1,106 @@
+From 94883b4302118fe6ea50028d02bb453c9af38b66 Mon Sep 17 00:00:00 2001
+From: John Keeping <john@keeping.me.uk>
+Date: Mon, 6 May 2013 16:20:54 +0100
+Subject: [PATCH] merge-tree: handle directory/empty conflict correctly
+
+git-merge-tree causes a null pointer dereference when a directory
+entry exists in only one or two of the three trees being compared with
+no corresponding entry in the other tree(s).
+
+When this happens, we want to handle the entry as a directory and not
+attempt to mark it as a file merge.  Do this by setting the entries bit
+in the directory mask when the entry is missing or when it is a
+directory, only performing the file comparison when we know that a file
+entry exists.
+
+Reported-by: Andreas Jacobsen <andreas@andreasjacobsen.com>
+Signed-off-by: John Keeping <john@keeping.me.uk>
+Tested-by: Andreas Jacobsen <andreas@andreasjacobsen.com>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>
+---
+ builtin/merge-tree.c  |  6 ++++-
+ t/t4300-merge-tree.sh | 51 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/builtin/merge-tree.c b/builtin/merge-tree.c
+index ec49917a36..61cbde4094 100644
+--- a/builtin/merge-tree.c
++++ b/builtin/merge-tree.c
+@@ -251,7 +251,11 @@ static void unresolved(const struct traverse_info *info, struct name_entry n[3])
+ 
+ 	for (i = 0; i < 3; i++) {
+ 		mask |= (1 << i);
+-		if (n[i].mode && S_ISDIR(n[i].mode))
++		/*
++		 * Treat missing entries as directories so that we return
++		 * after unresolved_directory has handled this.
++		 */
++		if (!n[i].mode || S_ISDIR(n[i].mode))
+ 			dirmask |= (1 << i);
+ 	}
+ 
+diff --git a/t/t4300-merge-tree.sh b/t/t4300-merge-tree.sh
+index 2defb422e8..9015e47654 100755
+--- a/t/t4300-merge-tree.sh
++++ b/t/t4300-merge-tree.sh
+@@ -259,6 +259,57 @@ EXPECTED
+ 	test_cmp expected actual
+ '
+ 
++test_expect_success 'tree add A, B (same)' '
++	cat >expect <<-\EOF &&
++	EOF
++	git reset --hard initial &&
++	mkdir sub &&
++	test_commit "add sub/file" "sub/file" "file" add-tree-A &&
++	git merge-tree initial add-tree-A add-tree-A >actual &&
++	test_cmp expect actual
++'
++
++test_expect_success 'tree add A, B (different)' '
++	cat >expect <<-\EOF &&
++	added in both
++	  our    100644 43d5a8ed6ef6c00ff775008633f95787d088285d sub/file
++	  their  100644 ba629238ca89489f2b350e196ca445e09d8bb834 sub/file
++	@@ -1 +1,5 @@
++	+<<<<<<< .our
++	 AAA
++	+=======
++	+BBB
++	+>>>>>>> .their
++	EOF
++	git reset --hard initial &&
++	mkdir sub &&
++	test_commit "add sub/file" "sub/file" "AAA" add-tree-a-b-A &&
++	git reset --hard initial &&
++	mkdir sub &&
++	test_commit "add sub/file" "sub/file" "BBB" add-tree-a-b-B &&
++	git merge-tree initial add-tree-a-b-A add-tree-a-b-B >actual &&
++	test_cmp expect actual
++'
++
++test_expect_success 'tree unchanged A, removed B' '
++	cat >expect <<-\EOF &&
++	removed in remote
++	  base   100644 43d5a8ed6ef6c00ff775008633f95787d088285d sub/file
++	  our    100644 43d5a8ed6ef6c00ff775008633f95787d088285d sub/file
++	@@ -1 +0,0 @@
++	-AAA
++	EOF
++	git reset --hard initial &&
++	mkdir sub &&
++	test_commit "add sub/file" "sub/file" "AAA" tree-remove-b-initial &&
++	git rm sub/file &&
++	test_tick &&
++	git commit -m "remove sub/file" &&
++	git tag tree-remove-b-B &&
++	git merge-tree tree-remove-b-initial tree-remove-b-initial tree-remove-b-B >actual &&
++	test_cmp expect actual
++'
++
+ test_expect_success 'turn file to tree' '
+ 	git reset --hard initial &&
+ 	rm initial-file &&
+-- 
+2.42.0
+
